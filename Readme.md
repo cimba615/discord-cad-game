@@ -22,7 +22,7 @@ Discord Bots run on a physical machine and need high resource (ram, cpu, interne
 
 1. **Clone Repo**
 
-    `git clone https://github.com/sky7512/discord-card-game.git`
+    `git clone https://github.com/cimba615/discord-cad-game.git`
 
     `cd discord-card-game`
 
