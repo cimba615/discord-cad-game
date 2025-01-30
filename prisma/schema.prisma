@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        BigInt     @id
+  balance   Int        @default(0)
+  createdAt DateTime   @default(now())
+  cards     UserCard[]
+  team      Team?      @relation
+  claims    Claims[]
+}
+
+model Team {
+  id        Int        @id @default(autoincrement())
+  createdAt DateTime   @default(now())
+  ownerId   BigInt?    @unique
+  User      User?      @relation(fields: [ownerId], references: [id])
+  TeamSlots TeamSlot[] // One-to-many relationship: A team has many slots (with unique indexes)
+}
+
+model TeamSlot {
+  id     Int       @id @default(autoincrement())
+  teamId Int // Foreign key pointing to the Team
+  team   Team      @relation(fields: [teamId], references: [id])
+  index  Int // Slot index (1, 2, or 3)
+  cardId Int?      @unique // Foreign key for the assigned card
+  card   UserCard? @relation(fields: [cardId], references: [id])
+
+  @@unique([teamId, index]) // Ensure each slot index is unique per team
+}
+
+model UserCard {
+  id        Int          @id @default(autoincrement())
+  catalogId Int?
+  catalog   CardCatalog? @relation(fields: [catalogId], references: [id])
+  teamSlot  TeamSlot? // This is a list of slots a card can occupy
+  ownerId   BigInt?
+  User      User?        @relation(fields: [ownerId], references: [id])
+}
+
+model CardCatalog {
+  id          Int        @id @default(autoincrement())
+  name        String
+  rarity      Rarity
+  cardImage   Json
+  stats       Json
+  abilities   Json
+  ActiveCards UserCard[]
+}
+
+model Claims {
+  id        Int       @id @default(autoincrement())
+  claimedAt DateTime  @default(now())
+  claimedBy BigInt?
+  User      User?     @relation(fields: [claimedBy], references: [id])
+  claimType ClaimType
+  rewards   Json
+}
+
+model Trade {
+  id          Int         @id @default(autoincrement())
+  senderId    BigInt?
+  receiverId  BigInt?
+  tradeStatus TradeStatus
+  cardsId     Int
+  price       Int
+}
+
+enum TradeStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+}
+
+enum Rarity {
+  SSR
+  UR
+}
+
+enum ClaimType {
+  DAILY
+  WEEKLY
+}
